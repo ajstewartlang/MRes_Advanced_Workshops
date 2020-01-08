@@ -1,6 +1,6 @@
 # MRes_Advanced_Workshops
 
-30/01/20	Mixed Models	10:00-12:00	Andrew Stewart	Stopford PC Cluster 3
+30/01/20	Mixed Models	10:00-12:00	Andrew Stewart	Stopford PC Cluster 3  
 30/01/20	Mixed Models	14:00-16:00	Andrew Stewart	Stopford PC Cluster 3
 
 13/02/20	Bayesian Statistics	10:00-12:00	Johan Hulleman	Ellen Wilkinson_B3.17  
