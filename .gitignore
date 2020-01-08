@@ -1,6 +1,7 @@
 # History files
 .Rhistory
 .Rapp.history
+/*/*/.Rhistory
 
 # Session Data files
 .RData
@@ -19,6 +20,8 @@
 
 # RStudio files
 .Rproj.user/
+/*/.Rproj.user/
+/*/*/.Rproj.user/
 
 # produced vignettes
 vignettes/*.html
@@ -34,3 +37,6 @@ vignettes/*.pdf
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
+
+# Ignore keynote versions of the slides
+/*/*.key
