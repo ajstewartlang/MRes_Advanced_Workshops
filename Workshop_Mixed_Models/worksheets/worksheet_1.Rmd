@@ -1,0 +1,92 @@
+---
+title: "Mixed Models Workshop - Worksheet 1"
+author: "Andrew Stewart"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+```
+
+## Linear Mixed Models
+Let's have a first look at mixed models.
+
+Within R, import the dataset "data1.csv" that is in the folder "worksheet_data".  These data are from a reaction time experiment.  Fifty participants had to respond to a word on the screen.  Their task was to press a button on a button box only when they recognized the word (our DV is measures in milliseconds).  The words were either Rare or Common.  The design is repeated measures.  We might expect Common words to be recognized more quickly than Common words.  Run the appropriate LMM to determine whether this is indeed correct.
+
+```{r, message=FALSE}
+my_data <- read_csv("worksheet_data/data1.csv")
+```
+
+Let's first check the structure of the data.
+
+```{r}
+str(my_data)
+```
+
+OK, we need to first set our Subject, Item, and Condition columns are all factors - the first two we will used as our random effects, the third as our fixed effect:
+
+```{r}
+my_data$Subject <- as.factor(my_data$Subject)
+my_data$Item <- as.factor(my_data$Item)
+my_data$Condition <- as.factor(my_data$Condition)
+```
+
+Let's build a plot:
+
+```{r, warning=FALSE}
+my_data %>%
+  ggplot(aes(x = Condition, y = RT, colour = Condition)) +
+  geom_violin() +
+  geom_jitter(alpha = .2, width = .2) +
+  guides(colour = FALSE) +
+  geom_boxplot(width = .2, colour = "black", alpha = 0) +
+  coord_flip() +
+  labs(y = "RT in Ms.")
+```
+
+Generate some descriptives:
+
+```{r}
+my_data %>% group_by(Condition) %>% 
+  filter(!is.na(RT)) %>% 
+  summarise(mean = mean(RT), sd = sd(RT))
+```
+
+Let's run a basic mixed model first:
+
+```{r}
+model1 <- lmer(RT ~ Condition + (1 + Condition | Subject) + (1 + Condition | Item), data = my_data)
+summary(model1)
+```
+
+We can see we have an effect of condition - the Intercept corresponds to our 'Common' condition and our ConditionRare estimate corresponds to the difference between our 'Common' and 'Rare' conditions.  In other words, our 'Rare' condition words are about 200 msec. slower to respond to. That fits with the descriptives we calculated earlier.  The estimates differ slighly from our descriptives as we have a missing data point which we can see by using the filter() function to display cases where we have missing RT data (indicated by NA).
+
+```{r}
+filter(my_data, is.na(RT))
+```
+
+How do the residuals look?
+
+```{r}
+qqnorm(residuals(model1))
+qqline(residuals(model1))
+
+r_int <- ranef(model1)$Subject$`(Intercept)`
+qqnorm(r_int)
+qqline(r_int)
+
+r_slope <- ranef(model1)$Subject$Condition
+qqnorm(r_slope)
+qqline(r_slope)
+
+```
+
+
+

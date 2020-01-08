@@ -1,0 +1,255 @@
+---
+title: "Mixed Models Workshop - Worksheet 3"
+author: "Andrew Stewart"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+```
+
+# One Factor Repeated Measures
+
+Load the dataset "data2.csv" from the worksheet_data folder.  These data are from an experiment where we measured how long people spent looking at images that appeared on screen.  The images depicted either positive, neutral, or negative scenes.  This is our one factor with three levels.  The design was repeated measures.  Perform the appropriate LMM analysis and determine whether people spent a different amount of time looking at the positive relative to the negative images, and the neutral relative to the negative images. 
+
+```{r include=FALSE}
+my_data <- read_csv("worksheet_data/data2.csv")
+```
+
+First we need to set our appropriate factors.
+
+```{r}
+my_data$Subject <- as.factor(my_data$Subject)
+my_data$Item <- as.factor(my_data$Item)
+my_data$Image <- as.factor(my_data$Image)
+```
+
+Let's visualise our data:
+
+```{r, warnings=FALSE}
+my_data %>%
+  ggplot(aes (x = Image, y = RT, colour = Image)) +
+  geom_violin() +
+  geom_jitter(alpha = .2, width = .2) +
+  guides(colour = FALSE) +
+  geom_boxplot(width = .2, colour = "black", alpha = 0) +
+  coord_flip()
+```
+
+We have some missing data so need to use na.rm = TRUE to ignore those points.
+
+```{r}
+my_data %>% 
+  group_by(Image) %>% 
+  summarise(mean = mean(RT, na.rm = TRUE), sd = sd(RT, na.rm = TRUE))
+```
+
+Let's build our model.
+
+```{r}
+model <- lmer(RT ~ Image + (1 | Subject) + (1 | Item), data = my_data)
+summary(model)
+```
+
+How do the residuals look?
+
+```{r}
+qqnorm(residuals(model))
+qqline(residuals(model))
+```
+
+```{r}
+r_int <- ranef(model)$Subject$`(Intercept)`
+qqnorm(r_int)
+qqline(r_int)
+```
+
+```{r}
+r_int <- ranef(model)$Item$`(Intercept)`
+qqnorm(r_int)
+qqline(r_int)
+```
+
+Let's look at the distribution of the data.
+
+```{r}
+hist(my_data$RT)
+```
+
+OK, this looks a little like Gamma distributed data so let's build a generalised mixed model. Note, that beloow we add the log link function to our model. According to Ben Bolker "When using `lme4` to fit GLMMs with link functions that do not 
+automatically constrain the response to the allowable range of the  distributional family (e.g. binomial models with a log link, where the  estimated probability can be >1, or inverse-Gamma models, where the estimated mean can be negative), it is not unusual to get the error
+```
+PIRLS step-halvings failed to reduce deviance in pwrssUpdate
+```
+This occurs because `lme4` doesn't do anything to constrain the predicted values, so `NaN` values pop up, which aren't handled gracefully. If possible, switch to a link function to one that constrains the response (e.g. logit link for binomial or log link for Gamma)."
+
+https://stat.ethz.ch/pipermail/r-sig-mixed-models/2016q1/024453.html
+
+```{r}
+model_gamma <- glmer(log(RT) ~ Image + (1 | Subject) + (1 | Item), data = my_data, family = Gamma(link = log))
+summary(model_gamma)
+```
+
+```{r}
+qqnorm(residuals(model_gamma))
+qqline(residuals(model_gamma))
+```
+
+```{r}
+r_int <- ranef(model)$Subject$`(Intercept)`
+qqnorm(r_int)
+qqline(r_int)
+```
+
+```{r}
+r_int <- ranef(model)$Item$`(Intercept)`
+qqnorm(r_int)
+qqline(r_int)
+```
+
+This looks better - let's generate the summary of the model.
+
+```{r}
+summary(model_gamma)
+```
+
+It looks like both the Neutral and Positive conditions take longer to read than the Negative one. For the Neutral vs. Positive comparison, we need to re-level our factor or conduct pairwise comparisons.
+
+```{r}
+emmeans(model_gamma, pairwise ~ Image)
+```
+
+# 2 x 2 Factorial Design
+
+Now we're going to import the dataset "data3.csv".  These data are from a repeated measures experiment where participants had to respond to a target word (measured by our DV which is labelled "Time").  The target word always followed a prime word.  Prime and Target are our two factors – each with two levels – Positive vs. Negative.  We are interested in whether there is a priming effect (i.e., Positive target words responded to more quickly after Positive than after Negative Primes, and Negative target words responded to more quickly after Negative than after Positive Primes).  We need to build the appropriate LMM to determine whether this is indeed correct.
+
+```{r, message=FALSE}
+my_data <- read_csv("worksheet_data/data3.csv")
+```
+
+First we need to create our factors:
+
+```{r}
+my_data$Subject <- as.factor(my_data$Subject)
+my_data$Item <- as.factor(my_data$Item)
+my_data$Prime <- as.factor(my_data$Prime)
+my_data$Target <- as.factor(my_data$Target)
+```
+
+As it is a factorial experiment, we need to set up our contrast weightings for our two factors. This allows for easier intepretation of the paramester estimates - the intercept will correspond to the Grand Mean (i.e., the mean of our conditions).
+
+```{r}
+contrasts(my_data$Prime) <- matrix(c(.5, -.5))
+contrasts(my_data$Target) <- matrix(c(.5, -.5))
+```
+
+We can now check the structure of our data:
+
+```{r}
+str(my_data)
+```
+
+Let's visualise our data:
+
+```{r, warning=FALSE}
+my_data %>%
+  ggplot(aes(x = Prime:Target, y = Time, colour = Prime:Target)) +
+  geom_violin() +
+  geom_jitter(alpha = .2, width = .2) +
+  guides(colour = FALSE) +
+  geom_boxplot(width = .2, colour = "black", alpha = 0) +
+  coord_flip()         
+```
+
+Now we are going to generate some descriptives, filtering out cases where we have missing data in our dependent variable (labelled "Time").
+
+```{r}
+my_data %>%
+  filter(!is.na(Time)) %>%
+  group_by(Prime, Target) %>%
+  summarise(mean = mean(Time), sd = sd(Time))
+```
+
+```{r}
+my_data %>% filter(is.na(Time)) 
+```
+
+Note we have a little missing data (121 rows) - not a big deal, but something that you could report.
+
+We could calculate and plot the amount of missing data per participant:
+
+```{r, warnings=FALSE}
+my_data %>% 
+  group_by(Subject) %>% 
+  summarise(missing_count = sum(is.na(Time))) %>%
+  ggplot(aes(x = Subject, y = missing_count)) +
+  geom_col() +
+  labs(y = "Time in ms.")
+```
+
+```{r}
+model <- lmer(Time ~ Prime * Target + (1 + Prime * Target | Subject) + (1 + Prime * Target | Item), data = my_data)
+```
+
+```{r}
+summary(model)
+```
+
+This suggests our model is over-parameterised - the "singular fit" message tells us we have combinations of our effects where some dimensions of the variance-covariance matrix in our model are effectively zero. In other words, we are trying to estimate more parameters than our data will allow. In practice you might want to simplify your random effects structure until you find a model that isn't over parameterised. For the time being, let's stick with this model. 
+
+Our interaction is significant - we now need to run pairwise comparisons to figure out what condition(s) differs from what other condition(s). We need to use the emmeans() function from the emmeans package - let's do the correction manually as only a couple of pairwise comparisons make theoretical sense.  They are Positive/Positive vs Negative/Positive, and Negative/Negative vs Positive/Negative.  These are the only pairs where we're comparing the same target to the same target under the two different levels of our prime.  So, we need to multiply by 2 the calculated p-values for these comparisons to correct for familywise error.
+
+```{r}
+emmeans(model, pairwise ~ Prime * Target, adjust = "none")
+```
+
+What do the residuals look like?
+
+```{r}
+qqnorm(residuals(model))
+qqline(residuals(model))
+```
+
+```{r}
+r_int <- ranef(model)$Subject$`(Intercept)`
+qqnorm(r_int)
+qqline(r_int)
+```
+
+```{r}
+r_int <- ranef(model)$Subject$Prime1
+qqnorm(r_int)
+qqline(r_int)
+```
+
+```{r}
+r_int <- ranef(model)$Subject$Target1
+qqnorm(r_int)
+qqline(r_int)
+```
+
+Our power is pretty marginal in this study - as a rule of thumb, we need around 1600 observations per condition to detect the kinds of effect sizes we're looking for.
+
+![](image.png) 
+<br>
+<br>
+Brysbaert, M. & Stevens, M. (2018). Power Analysis and Effect Size in Mixed Effects Models: A Tutorial. _Journal of Cognition, 1_, 1–20, DOI: https://doi.org/10.5334/joc.10
+
+How many observations did we have per condition?
+
+```{r}
+my_data %>% group_by(Prime, Target) %>% summarise(count = n())
+```
+
+We need to run a much higher powered experiment - we need to increase the number of participants, the number of trials, or both!
+
+What about calculating the Bayes factor in support of the experimental vs. the null hypothesis?  
+
+

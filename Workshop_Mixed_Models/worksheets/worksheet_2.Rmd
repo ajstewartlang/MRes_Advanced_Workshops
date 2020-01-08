@@ -1,0 +1,79 @@
+---
+title: "Mixed Models Workshop - Worksheet 2"
+author: "Andrew Stewart"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(arm)
+```
+ 
+# Modelling a binomial response variable
+
+Now we're going to have a go at examining some binomial data. 32 partcipants saw images of 32 faces and 
+had to classify images as whether each was happy or sad.   We want to determine whether people were more accurate (indicatad by a 1 in the Acc column) for Sad or Happy faces. 
+
+```{r, message=FALSE}
+my_data <- read_csv("worksheet_data/accuracy_data.csv")
+```
+
+```{r}
+my_data$Subject <- as.factor(my_data$Subject)
+my_data$Face <- as.factor(my_data$Face)
+my_data$FaceExpression <- as.factor(my_data$FaceExpression)
+```
+
+Let's generate some summary stats first.
+
+```{r}
+my_data %>%
+  group_by(FaceExpression) %>%
+  summarise(mean = mean(Acc), sd = sd (Acc))
+```
+
+We can see that accuracy is higher for Sad faces relative to Happy one. Let's build a mixed model with both random effects to determine whether this difference is significant.
+
+```{r}
+model_full <- glmer(Acc ~ FaceExpression + (1 + FaceExpression | Subject) + (1 + FaceExpression | Face), data = my_data, family = "binomial")
+```
+
+```{r}
+summary(model_full)
+```
+
+This singularity error suggests our model may be over-parameterised (i.e., our dataset isn't sufficienctly rich to support
+the complexity of model we're trying to fit.) Let's simplify by fitting a subjects-only random effect model. There's very little variance explained by our Faces random effect term so that's good justification for dropping that.
+
+```{r}
+model_subject <- glmer(Acc ~ FaceExpression + (1 + FaceExpression | Subject), data = my_data, family = "binomial")
+```
+
+```{r}
+summary(model_subject)
+```
+
+Let's look at the binned residuals.
+```{r}
+binnedplot(fitted(model_subject),residuals(model_subject))
+```
+
+Let's now build a null model to compare with our model_subject model.
+```{r}
+model_null <- glmer(Acc ~ (1 + FaceExpression | Subject), data = my_data, family = "binomial")
+```
+
+```{r}
+anova(model_subject, model_null)
+```
+
+The two differ from each other (look at the small p-value) - with both AIC and BIC values consistently pointing towards the model_subject model as a better fit to our data. 
+
+Can you use the BIC values to estimate the Bayes factor in support of the model_subject model? What can you conclude from it?
