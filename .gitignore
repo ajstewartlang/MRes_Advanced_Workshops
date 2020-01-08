@@ -39,4 +39,4 @@ vignettes/*.pdf
 *.knit.md
 
 # Ignore keynote versions of the slides
-/*/*.key
+/*/*/*.key
