@@ -18,7 +18,7 @@ Work through any of the following questions in whatever order you want – you p
 
 ##Animated Data Visualisations
 
-2. Using either a built in dataset (e.g., the `mpg` or `starwars` dataset) or an external one (e.g., the `NHANES` dataset which is accessible in the package called `NHANES`) build some data visualisations to communicate some interesting aspect of the data. You might like to play around with the `gganimate` and `ggforce` packages.
+2. Using either a built in dataset (e.g., the `mpg` or `starwars` dataset) or an external one (e.g., the `NHANES` dataset which is accessible in the package called `NHANES` or any TidyTuesdat dataset) build some data visualisations to communicate some interesting aspect of the data. You might like to try the `gganimate` package.
 
 3. Install the BBC style package using `devtools::install_github('bbc/bbplot')` and apply the `bbc_style()` function to some of the above visualisations.
 
