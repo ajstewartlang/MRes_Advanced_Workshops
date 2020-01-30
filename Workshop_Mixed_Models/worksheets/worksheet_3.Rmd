@@ -103,13 +103,13 @@ qqline(residuals(model_gamma))
 ```
 
 ```{r}
-r_int <- ranef(model)$Subject$`(Intercept)`
+r_int <- ranef(model_gamma)$Subject$`(Intercept)`
 qqnorm(r_int)
 qqline(r_int)
 ```
 
 ```{r}
-r_int <- ranef(model)$Item$`(Intercept)`
+r_int <- ranef(model_gamma)$Item$`(Intercept)`
 qqnorm(r_int)
 qqline(r_int)
 ```
@@ -191,7 +191,7 @@ my_data %>%
   summarise(missing_count = sum(is.na(Time))) %>%
   ggplot(aes(x = Subject, y = missing_count)) +
   geom_col() +
-  labs(y = "Time in ms.")
+  labs(y = "Missing count")
 ```
 
 ```{r}
