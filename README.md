@@ -12,5 +12,4 @@
 05/03/20	MATLAB	10:00-12:00	Bo Yao	Ellen Wilkinson_B3.17  
 05/03/20	MATLAB	14:00-16:00	Bo Yao	Ellen Wilkinson_B3.1
 
-26/03/20	Hackathon	10:00-12:00	Andrew Stewart	https://youtu.be/uuz0lvYtJrY
-26/03/20	Hackathon	14:00-16:00	Andrew Stewart	
+26/03/20	Hackathon	10:00-16:00	Andrew Stewart [Recorded session](https://youtu.be/uuz0lvYtJrY)
