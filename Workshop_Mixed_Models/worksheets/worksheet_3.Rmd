@@ -93,7 +93,7 @@ This occurs because `lme4` doesn't do anything to constrain the predicted values
 https://stat.ethz.ch/pipermail/r-sig-mixed-models/2016q1/024453.html
 
 ```{r}
-model_gamma <- glmer(log(RT) ~ Image + (1 | Subject) + (1 | Item), data = my_data, family = Gamma(link = log))
+model_gamma <- glmer(RT ~ Image + (1 | Subject) + (1 | Item), data = my_data, family = Gamma(link = log))
 summary(model_gamma)
 ```
 

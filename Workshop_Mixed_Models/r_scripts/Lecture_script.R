@@ -3,6 +3,7 @@ library(lmerTest) # gives us p-values for parameters in linear mixed models
 library(emmeans) # allows us to run pairwise comparisons/contrsasts
 library(tidyverse) # load the tidyverse packages
 library(ordinal) # needed for CLMM - cumulative link mixed models for ordinal data
+library(RLRsim) # LRTs 
 
 # Linear model
 genderheightdata <- read_csv("data_files/genderheightdata.csv")
@@ -321,6 +322,9 @@ model.interceptonly <- glmer(DV ~ Condition + (1 | Subject) + (1 | Item),
 model.null <- glmer(DV ~ (1 | Subject) + (1 | Item), data = RO, family = binomial)
 
 anova(model.interceptonly, model.null)
+
+# anova can be misleading for glmer models so maybe stick with z-values of
+# predictors and associated p-values
 
 arm::binnedplot(fitted(model.full),residuals(model.full))
 
