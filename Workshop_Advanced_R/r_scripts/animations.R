@@ -1,4 +1,5 @@
 # Animation with fictional data #### 
+# For Ubuntu remember to sort out renderer to else bunch of png files will be saved 
 library(tidyverse)
 library(gganimate)
 library(ggimage)
