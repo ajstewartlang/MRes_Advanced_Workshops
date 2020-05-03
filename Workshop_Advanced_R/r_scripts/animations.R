@@ -1,5 +1,6 @@
 # Animation with fictional data #### 
-# For Ubuntu remember to sort out renderer to else bunch of png files will be saved 
+# For Ubuntu remember to sort out renderer to else bunch of png files will be saved
+# Need to sudo apt install libmagick++-dev 
 library(tidyverse)
 library(gganimate)
 library(ggimage)
