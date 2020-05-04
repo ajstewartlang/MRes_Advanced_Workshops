@@ -3,7 +3,7 @@
 # Need to sudo apt install libmagick++-dev 
 library(tidyverse)
 library(gganimate)
-library(ggimage)
+library(ggimage) 
 
 set.seed(1234)
 coffee_data <- seq(1:100)
