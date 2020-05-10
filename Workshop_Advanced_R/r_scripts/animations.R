@@ -1,5 +1,5 @@
 # Animation with fictional data #### 
-# For Ubuntu remember to sort out renderer to else bunch of png files will be saved
+# For Ubuntu remember to sort out renderer to else bunch of png files will be saved - gifski
 # Need to sudo apt install libmagick++-dev 
 library(tidyverse)
 library(gganimate)
@@ -31,7 +31,7 @@ data %>%
        x = "Minutes since opening",
        y = "Number sold") +
   theme(text = element_text(size = 15))
-
+ 
 # With text labels
 data %>%
   ggplot(aes(x = n_sold, y = Time, group = Product, colour = Product)) +
